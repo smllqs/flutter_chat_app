@@ -25,6 +25,7 @@ class LocalMessage {
         contents: json['contents']);
     final localMessage =
         LocalMessage(json['chat_id'], message, json['receipt_status']);
+    localMessage._id = json['id'];
     return localMessage;
   }
 }
