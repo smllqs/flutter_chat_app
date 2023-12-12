@@ -3,6 +3,7 @@ import 'dart:js_interop_unsafe';
 import 'package:flutter_chat_app/data/data_source/data_source_contract.dart';
 import 'package:flutter_chat_app/models/chat.dart';
 import 'package:flutter_chat_app/models/local_message.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:sqflite/sqlite_api.dart';
 
 class SQfliteDataSource implements IDataSource {
@@ -52,30 +53,65 @@ class SQfliteDataSource implements IDataSource {
             ''', ['delivered']);
 
       return chatsWithLatestMessage.map<Chat>((row) {
-        final int? unread = int.tryParse(chatsWithUnreadMessages.firstWhere(
+        final unread = int.tryParse(chatsWithUnreadMessages.firstWhere(
             (ele) => row['chat_id'] == ele['chat_id'],
             orElse: () => {'unread': 0})['unread'] as String);
-        
-        final 
+
+        final chat = Chat.fromMap(row);
+        chat.unread = unread!;
+        chat.mostRecent = LocalMessage.fromMap(row);
+        return chat;
       }).toList();
     });
   }
 
   @override
-  Future<Chat> findChat(String chatId) {
-    // TODO: implement findChat
-    throw UnimplementedError();
+  Future<Chat> findChat(String chatId) async {
+    return await _db.transaction((txn) async {
+      final listOfChatMaps = await txn.query(
+        'chats',
+        where: 'id = ?',
+        whereArgs: [chatId],
+      );
+
+      final unread = Sqflite.firstIntValue(await txn.rawQuery('''
+              SELECT COUNT(*) 
+              FROM messages 
+              WHERE chat_id = ? 
+              AND receipt = ?
+            ''', [chatId, 'delivered']));
+
+      final mostRecentMessage = await txn.query('messages',
+          where: 'chat_id = ?',
+          whereArgs: [chatId],
+          orderBy: 'created_at DESC',
+          limit: 1);
+
+      final chat = Chat.fromMap(listOfChatMaps.first);
+      chat.unread = unread!;
+      chat.mostRecent = LocalMessage.fromMap(mostRecentMessage.first);
+      return chat;
+    });
   }
 
   @override
-  Future<List<LocalMessage>> findMessages(String chatId) {
-    // TODO: implement findMessages
-    throw UnimplementedError();
+  Future<List<LocalMessage>> findMessages(String chatId) async {
+    final listOfMaps = await _db.query(
+      'messages',
+      where: 'chat_id = ?',
+      whereArgs: [chatId],
+    );
+
+    return listOfMaps
+        .map<LocalMessage>((map) => LocalMessage.fromMap(map))
+        .toList();
   }
 
   @override
-  Future<void> updateMessage(LocalMessage message) {
-    // TODO: implement updateMessage
-    throw UnimplementedError();
+  Future<void> updateMessage(LocalMessage message) async {
+    await _db.update('messages', message.toMap(),
+        where: 'id = ?',
+        whereArgs: [message.message.id],
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 }
