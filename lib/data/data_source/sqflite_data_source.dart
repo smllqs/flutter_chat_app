@@ -11,7 +11,7 @@ class SQfliteDataSource implements IDataSource {
 
   const SQfliteDataSource(this._db);
   @override
-  Future<void> addChats(Chat chat) async {
+  Future<void> addChat(Chat chat) async {
     await _db.insert('chats', chat.toMap(),
         conflictAlgorithm: ConflictAlgorithm.replace);
   }
