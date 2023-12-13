@@ -15,7 +15,7 @@ class SQfliteDataSource implements IDataSource {
 
   @override
   Future<void> addMessage(LocalMessage message) async {
-    await _db.insert('message', message.toMap(),
+    await _db.insert('messages', message.toMap(),
         conflictAlgorithm: ConflictAlgorithm.replace);
   }
 

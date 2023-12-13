@@ -48,12 +48,39 @@ void main() {
     final localMessage = LocalMessage('1234', message, ReceiptStatus.sent);
 
     when(database.insert('messages', localMessage.toMap(),
-            nullColumnHack: null, conflictAlgorithm: ConflictAlgorithm.replace))
+            conflictAlgorithm: ConflictAlgorithm.replace))
         .thenAnswer((_) async => 1);
     await sut.addMessage(localMessage);
 
     verify(database.insert('messages', localMessage.toMap(),
             conflictAlgorithm: ConflictAlgorithm.replace))
         .called(1);
+  });
+
+  test('should perform a database query and return message', () async {
+    final messagesMap = [
+      {
+        'chat_id': '111',
+        'id': '4444',
+        'from': '111',
+        'to': '222',
+        'contents': 'hey',
+        'receipt_status': 'sent',
+        'timestamp': DateTime.parse("2023-12-13")
+      }
+    ];
+
+    when(database.query('messages',
+            where: anyNamed('where'), whereArgs: anyNamed('whereArgs')))
+        .thenAnswer((_) async => messagesMap);
+
+    var messages = await sut.findMessages('111');
+    expect(messages.length, 1);
+    expect(messages.first.chatId, '111');
+    verify(database.query(
+      'messages',
+      where: anyNamed('where'),
+      whereArgs: anyNamed('whereArgs'),
+    )).called(1);
   });
 }

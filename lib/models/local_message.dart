@@ -14,7 +14,7 @@ class LocalMessage {
         'chat_id': chatId,
         'id': message.id,
         ...message.toJson(),
-        'receipt': receiptStatus.value()
+        'receipt_status': receiptStatus.value()
       };
 
   factory LocalMessage.fromMap(Map<String, dynamic> json) {
@@ -23,8 +23,8 @@ class LocalMessage {
         to: json['to'],
         timestamp: json['timestamp'],
         contents: json['contents']);
-    final localMessage =
-        LocalMessage(json['chat_id'], message, json['receipt_status']);
+    final localMessage = LocalMessage(json['chat_id'], message,
+        EnumParsing.fromString(json['receipt_status']));
     localMessage._id = json['id'];
     return localMessage;
   }
