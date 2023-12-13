@@ -1,10 +1,7 @@
-import 'dart:js_interop_unsafe';
-
 import 'package:flutter_chat_app/data/data_source/data_source_contract.dart';
 import 'package:flutter_chat_app/models/chat.dart';
 import 'package:flutter_chat_app/models/local_message.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:sqflite/sqlite_api.dart';
 
 class SQfliteDataSource implements IDataSource {
   final Database _db;
