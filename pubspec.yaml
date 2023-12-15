@@ -39,6 +39,8 @@ dependencies:
   sqflite: ^2.3.0
   mockito: ^5.4.3
   build_runner: ^2.4.7
+  bloc: ^8.1.2
+  equatable: ^2.0.5
 
 dev_dependencies:
   flutter_test:
